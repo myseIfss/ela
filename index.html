@@ -67,6 +67,22 @@
             transform: translate(var(--x), var(--y)) scale(0.4);
         }
     }
+
+    /* Overlay (başlatmak için dokun) */
+    #startOverlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.6);
+        color: #fff;
+        font-size: 32px;
+        z-index: 9999;
+        cursor: pointer;
+        font-weight: bold;
+        text-shadow: 0 0 10px #ff77aa;
+    }
 </style>
 </head>
 <body>
@@ -75,11 +91,14 @@
 <canvas id="c"></canvas>
 <div id="title">Seni Seviyorum Balımmmm</div>
 
-<!-- ✔ GITHUB PAGES İÇİN TAM URL -->
-<audio id="bgm" src="https://myseifss.github.io/ela/music.mp3" loop preload="auto"></audio>
+<!-- Başlatmak için dokun -->
+<div id="startOverlay">Başlamak için tıkla / dokun 💗</div>
+
+<!-- Müzik -->
+<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
 
 <script>
-/* ---------- CANVAS SETUP ---------- */
+/* ---------- CANVAS ---------- */
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
@@ -119,52 +138,34 @@ function draw() {
         drops[i]++;
     }
 }
-let drawInterval = setInterval(draw, 33);
+setInterval(draw, 33);
 
-/* ---------- MÜZİK + FADE-IN ---------- */
+/* ---------- MÜZİK BAŞLATMA (GARANTİ ÇALIŞIR) ---------- */
 const bgm = document.getElementById('bgm');
-let musicStarted = false;
+const overlay = document.getElementById('startOverlay');
 
-function fadeIn(audio, duration = 2500) {
-    if (!audio) return;
-    audio.volume = 0;
-    const ramp = () => {
-        const step = 0.02;
-        const tick = Math.max(10, Math.floor(duration * step));
-        const timer = setInterval(()=>{
-            if (audio.volume < 1 - 1e-3) {
-                audio.volume = Math.min(1, audio.volume + step);
-            } else {
-                audio.volume = 1;
-                clearInterval(timer);
-            }
-        }, tick);
-    };
-    const p = audio.play();
-    if (p !== undefined) {
-        p.then(ramp).catch(()=>{ musicStarted = false; });
-    } else {
-        try { audio.play(); ramp(); musicStarted = true; } catch(e){ musicStarted = false; }
-    }
+function startAudio() {
+    bgm.volume = 0;
+
+    bgm.play().then(() => {
+        // Fade-in
+        let vol = 0;
+        const fade = setInterval(() => {
+            vol += 0.02;
+            bgm.volume = vol;
+            if (vol >= 1) clearInterval(fade);
+        }, 40);
+    }).catch(err => {
+        console.warn("Play engellendi:", err);
+    });
+
+    overlay.remove();
+    document.removeEventListener('pointerdown', startAudio);
 }
 
-function userStartHandler(){
-    if (musicStarted) return;
-    fadeIn(bgm, 2500);
-    musicStarted = true;
-    document.removeEventListener('touchstart', userStartHandler);
-    document.removeEventListener('click', userStartHandler);
-}
+document.addEventListener('pointerdown', startAudio, { once: true });
 
-/* ✔ Mobil için zorunlu etkileşim */
-document.addEventListener('touchstart', userStartHandler, {passive:true});
-document.addEventListener('click', userStartHandler, {passive:true});
-
-bgm.addEventListener('error', () => {
-    console.warn('Audio yüklenemedi. GitHub Pages dosya yolunu kontrol et.');
-});
-
-/* ---------- PARÇACIK ---------- */
+/* ---------- PARÇACIK EFEKTİ ---------- */
 document.addEventListener("click", (e) => {
     for (let i = 0; i < 20; i++) {
         createParticle(e.clientX, e.clientY);
@@ -190,5 +191,6 @@ function createParticle(x, y) {
     setTimeout(() => p.remove(), 1000);
 }
 </script>
+
 </body>
 </html>
