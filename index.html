@@ -161,7 +161,7 @@ function userStartHandler(){
 
 document.addEventListener('touchstart', userStartHandler, {passive:true});
 document.addEventListener('click', userStartHandler, {passive:true});
-fadeIn(bgm, 2500);
+
 
 bgm.addEventListener('error', () => {
     console.warn('Audio yüklenemedi. "Nerdeysen.mp3" dosyasının doğru klasörde ve isminin doğru olduğundan emin ol.');
