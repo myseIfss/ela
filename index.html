@@ -13,6 +13,7 @@
         user-select: none;
     }
 
+    /* Arka glow */
     .glow {
         position: absolute;
         width: 480px;
@@ -27,6 +28,7 @@
         pointer-events: none;
     }
 
+    /* Ortadaki neon yazı */
     #title {
         font-family:stylesheet;
         position: absolute;
@@ -50,6 +52,7 @@
         z-index:2;
     }
 
+    /* Te amo parçacıkları */
     .particle {
         position: absolute;
         color: #ffb5c5;
@@ -68,20 +71,17 @@
         }
     }
 
-    /* Overlay */
-    #tapToUnmute {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.65);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 32px;
-        text-shadow: 0 0 10px #ff66aa;
-        z-index: 9999;
-        cursor: pointer;
-        font-weight: bold;
+    /* GÖRÜNMEZ TETİKLEME BUTTONU (mobilde kesin başlatır) */
+    #startAudio {
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        opacity:0;
+        z-index:9999;
+        border:none;
+        background:none;
     }
 </style>
 </head>
@@ -91,14 +91,14 @@
 <canvas id="c"></canvas>
 <div id="title">Seni Seviyorum Balımmmm</div>
 
-<!-- Dokununca ses aç -->
-<div id="tapToUnmute">Sesi Açmak İçin Dokun 💗</div>
+<!-- AUDIO -->
+<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
 
-<!-- Muted autoplay -->
-<audio id="bgm" src="music.mp3" muted autoplay loop></audio>
+<!-- GÖRÜNMEZ BAŞLATMA -->
+<button id="startAudio"></button>
 
 <script>
-/* ---------- CANVAS ---------- */
+/* ---------- CANVAS & MATRIX AYARLARI ---------- */
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
@@ -138,31 +138,44 @@ function draw() {
         drops[i]++;
     }
 }
-setInterval(draw, 33);
+let drawInterval = setInterval(draw, 33);
 
+/* ---------- MÜZİK + FADE-IN + GÖRÜNMEZ BUTON ---------- */
+const bgm = document.getElementById('bgm');
+const invisibleBtn = document.getElementById('startAudio');
+let musicStarted = false;
 
-/* ---------- MUTED+AÇMA ---------- */
-const bgm = document.getElementById("bgm");
-const tap = document.getElementById("tapToUnmute");
+function fadeIn(audio, duration = 2500) {
+    if (!audio) return;
+    audio.volume = 0;
 
-tap.addEventListener("click", () => {
+    const ramp = () => {
+        const step = 0.02;
+        const tick = Math.max(10, Math.floor(duration * step));
+        const timer = setInterval(()=>{
+            if (audio.volume < 1 - 1e-3) {
+                audio.volume = Math.min(1, audio.volume + step);
+            } else {
+                audio.volume = 1;
+                clearInterval(timer);
+            }
+        }, tick);
+    };
 
-    bgm.muted = false;
+    const p = audio.play();
+    if (p !== undefined) {
+        p.then(ramp).catch(()=>{});
+    } else {
+        try { audio.play(); ramp(); } catch(e){}
+    }
+}
 
-    // soft fade
-    let v = 0;
-    bgm.volume = 0;
-    const fade = setInterval(() => {
-        v += 0.03;
-        bgm.volume = v;
-        if (v >= 1) clearInterval(fade);
-    }, 50);
-
-    tap.remove();
+invisibleBtn.addEventListener("click", () => {
+    fadeIn(bgm, 2500);
+    invisibleBtn.style.display = "none"; // Başladıktan sonra gizle
 });
 
-
-/* ---------- PARÇACIK ---------- */
+/* ---------- TE AMO PARÇACIKLARI ---------- */
 document.addEventListener("click", (e) => {
     for (let i = 0; i < 20; i++) {
         createParticle(e.clientX, e.clientY);
@@ -188,6 +201,5 @@ function createParticle(x, y) {
     setTimeout(() => p.remove(), 1000);
 }
 </script>
-
 </body>
 </html>
