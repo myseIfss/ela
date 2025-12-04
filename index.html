@@ -68,20 +68,20 @@
         }
     }
 
-    /* Overlay (başlatmak için dokun) */
-    #startOverlay {
+    /* Overlay */
+    #tapToUnmute {
         position: fixed;
         inset: 0;
+        background: rgba(0,0,0,0.65);
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(0,0,0,0.6);
-        color: #fff;
+        color: white;
         font-size: 32px;
+        text-shadow: 0 0 10px #ff66aa;
         z-index: 9999;
         cursor: pointer;
         font-weight: bold;
-        text-shadow: 0 0 10px #ff77aa;
     }
 </style>
 </head>
@@ -91,11 +91,11 @@
 <canvas id="c"></canvas>
 <div id="title">Seni Seviyorum Balımmmm</div>
 
-<!-- Başlatmak için dokun -->
-<div id="startOverlay">Başlamak için tıkla / dokun 💗</div>
+<!-- Dokununca ses aç -->
+<div id="tapToUnmute">Sesi Açmak İçin Dokun 💗</div>
 
-<!-- Müzik -->
-<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
+<!-- Muted autoplay -->
+<audio id="bgm" src="music.mp3" muted autoplay loop></audio>
 
 <script>
 /* ---------- CANVAS ---------- */
@@ -140,32 +140,29 @@ function draw() {
 }
 setInterval(draw, 33);
 
-/* ---------- MÜZİK BAŞLATMA (GARANTİ ÇALIŞIR) ---------- */
-const bgm = document.getElementById('bgm');
-const overlay = document.getElementById('startOverlay');
 
-function startAudio() {
+/* ---------- MUTED+AÇMA ---------- */
+const bgm = document.getElementById("bgm");
+const tap = document.getElementById("tapToUnmute");
+
+tap.addEventListener("click", () => {
+
+    bgm.muted = false;
+
+    // soft fade
+    let v = 0;
     bgm.volume = 0;
+    const fade = setInterval(() => {
+        v += 0.03;
+        bgm.volume = v;
+        if (v >= 1) clearInterval(fade);
+    }, 50);
 
-    bgm.play().then(() => {
-        // Fade-in
-        let vol = 0;
-        const fade = setInterval(() => {
-            vol += 0.02;
-            bgm.volume = vol;
-            if (vol >= 1) clearInterval(fade);
-        }, 40);
-    }).catch(err => {
-        console.warn("Play engellendi:", err);
-    });
+    tap.remove();
+});
 
-    overlay.remove();
-    document.removeEventListener('pointerdown', startAudio);
-}
 
-document.addEventListener('pointerdown', startAudio, { once: true });
-
-/* ---------- PARÇACIK EFEKTİ ---------- */
+/* ---------- PARÇACIK ---------- */
 document.addEventListener("click", (e) => {
     for (let i = 0; i < 20; i++) {
         createParticle(e.clientX, e.clientY);
