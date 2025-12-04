@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<title>Ela</title>
+<style>
+    html, body {
+        height:100%;
+        margin:0;
+        background:#000;
+        overflow:hidden;
+        font-family: Arial, sans-serif;
+        user-select: none;
+    }
+
+    /* Arka glow */
+    .glow {
+        position: absolute;
+        width: 480px;
+        height: 480px;
+        background: #ff2da4;
+        filter: blur(120px);
+        opacity: 0.38;
+        top: 18%;
+        left: 30%;
+        z-index: 1;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* Ortadaki neon yazı */
+    #title {
+        font-family:stylesheet;
+        position: absolute;
+        top: 40%;
+        width: 100%;
+        text-align: center;
+        font-size: 80px;
+        color: #ee799f;
+        font-weight: 800;
+        text-shadow:
+            0 0 50px #ff0099,
+            0 0 80px #ff33bb;
+        z-index: 4;
+        pointer-events: none;
+    }
+
+    canvas {
+        position: absolute;
+        top:0;
+        left:0;
+        z-index:2;
+    }
+
+    /* Te amo parçacıkları */
+    .particle {
+        position: absolute;
+        color: #ffb5c5;
+        font-size: 30px;
+        pointer-events: none;
+        opacity: 1;
+        transform: translate(-50%, -50%);
+        animation: explode 1s ease-out forwards;
+        z-index: 5;
+    }
+
+    @keyframes explode {
+        to {
+            opacity: 0;
+            transform: translate(var(--x), var(--y)) scale(0.4);
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="glow"></div>
+<canvas id="c"></canvas>
+<div id="title">Seni Seviyorum Balımmmm</div>
+
+<!-- audio: aynı klasöre koy: Nerdeysen.mp3 -->
+<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
+
+<script>
+/* ---------- CANVAS & MATRIX AYARLARI ---------- */
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let fontSize = 18;
+let word = "Ela aşk";
+let columns = 0;
+let drops = [];
+
+function resize() {
+    canvas.width = window.innerWidth; 
+    canvas.height = window.innerHeight;
+    initDrops();
+}
+window.addEventListener('resize', resize, {passive:true});
+
+function initDrops(){
+    columns = Math.floor(canvas.width / fontSize);
+    drops = new Array(columns);
+    for (let i=0;i<columns;i++){
+        drops[i] = Math.random() * -60;
+    }
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+resize();
+
+function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#db7093';
+    ctx.font = fontSize + 'px monospace';
+    for (let i=0;i<drops.length;i++){
+        ctx.fillText(word, i * fontSize * (word.length + 1), drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.95){
+            drops[i] = Math.random() * -20;
+        }
+        drops[i]++;
+    }
+}
+let drawInterval = setInterval(draw, 33);
+
+/* ---------- MÜZİK + FADE-IN ---------- */
+const bgm = document.getElementById('bgm');
+let musicStarted = false;
+
+function fadeIn(audio, duration = 2500) {
+    if (!audio) return;
+    audio.volume = 0;
+    const ramp = () => {
+        const step = 0.02;
+        const tick = Math.max(10, Math.floor(duration * step));
+        const timer = setInterval(()=>{
+            if (audio.volume < 1 - 1e-3) {
+                audio.volume = Math.min(1, audio.volume + step);
+            } else {
+                audio.volume = 1;
+                clearInterval(timer);
+            }
+        }, tick);
+    };
+    const p = audio.play();
+    if (p !== undefined) {
+        p.then(ramp).catch(()=>{ musicStarted = false; });
+    } else {
+        try { audio.play(); ramp(); musicStarted = true; } catch(e){ musicStarted = false; }
+    }
+}
+
+function userStartHandler(){
+    if (musicStarted) return;
+    fadeIn(bgm, 2500);
+    musicStarted = true;
+    document.removeEventListener('touchstart', userStartHandler);
+    document.removeEventListener('click', userStartHandler);
+}
+
+document.addEventListener('touchstart', userStartHandler, {passive:true});
+document.addEventListener('click', userStartHandler, {passive:true});
+fadeIn(bgm, 2500);
+
+bgm.addEventListener('error', () => {
+    console.warn('Audio yüklenemedi. "Nerdeysen.mp3" dosyasının doğru klasörde ve isminin doğru olduğundan emin ol.');
+});
+
+/* ---------- TE AMO PARÇACIKLARI ---------- */
+document.addEventListener("click", (e) => {
+    for (let i = 0; i < 20; i++) {
+        createParticle(e.clientX, e.clientY);
+    }
+});
+
+function createParticle(x, y) {
+    const p = document.createElement("div");
+    p.className = "particle";
+    p.innerText = "Ela";
+
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 100 + Math.random() * 100;
+
+    p.style.setProperty("--x", Math.cos(angle) * distance + "px");
+    p.style.setProperty("--y", Math.sin(angle) * distance + "px");
+
+    p.style.left = x + "px";
+    p.style.top = y + "px";
+
+    document.body.appendChild(p);
+
+    setTimeout(() => p.remove(), 1000);
+}
+</script>
+</body>
+</html>
