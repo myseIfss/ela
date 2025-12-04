@@ -13,7 +13,6 @@
         user-select: none;
     }
 
-    /* Arka glow */
     .glow {
         position: absolute;
         width: 480px;
@@ -28,7 +27,6 @@
         pointer-events: none;
     }
 
-    /* Ortadaki neon yazı */
     #title {
         font-family:stylesheet;
         position: absolute;
@@ -52,7 +50,6 @@
         z-index:2;
     }
 
-    /* Te amo parçacıkları */
     .particle {
         position: absolute;
         color: #ffb5c5;
@@ -78,11 +75,11 @@
 <canvas id="c"></canvas>
 <div id="title">Seni Seviyorum Balımmmm</div>
 
-<!-- audio: aynı klasöre koy: Nerdeysen.mp3 -->
-<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
+<!-- ✔ GITHUB PAGES İÇİN TAM URL -->
+<audio id="bgm" src="https://myseifss.github.io/ela/music.mp3" loop preload="auto"></audio>
 
 <script>
-/* ---------- CANVAS & MATRIX AYARLARI ---------- */
+/* ---------- CANVAS SETUP ---------- */
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
@@ -159,15 +156,15 @@ function userStartHandler(){
     document.removeEventListener('click', userStartHandler);
 }
 
+/* ✔ Mobil için zorunlu etkileşim */
 document.addEventListener('touchstart', userStartHandler, {passive:true});
 document.addEventListener('click', userStartHandler, {passive:true});
 
-
 bgm.addEventListener('error', () => {
-    console.warn('Audio yüklenemedi. "Nerdeysen.mp3" dosyasının doğru klasörde ve isminin doğru olduğundan emin ol.');
+    console.warn('Audio yüklenemedi. GitHub Pages dosya yolunu kontrol et.');
 });
 
-/* ---------- TE AMO PARÇACIKLARI ---------- */
+/* ---------- PARÇACIK ---------- */
 document.addEventListener("click", (e) => {
     for (let i = 0; i < 20; i++) {
         createParticle(e.clientX, e.clientY);
